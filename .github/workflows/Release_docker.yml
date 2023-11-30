@@ -56,12 +56,16 @@ jobs:
         uses :  docker/build-push-action@v4
         with:
           context: .
+          file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
+          # The following tags are for Docker Hub, uncomment if needed.
+          # tags: |
+          #   ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_TAG }}
+          #   ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           tags: |
             ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_TAG }}
             ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:latest
-            
-            # The following tags are for Docker Hub, uncomment if needed.
-            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_TAG }}
-            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha,scope=${{ github.repository }}
+          cache-to: type=gha,scope=${{ github.repository }}
+  
