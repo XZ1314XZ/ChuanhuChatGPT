@@ -47,6 +47,9 @@ jobs:
         run: |
           GITOWNER=`echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]'`
           IMAGE_NAME=`echo "${{ github.event.inputs.image_name }}" | tr '[:upper:]' '[:lower:]'`
+          if [ -z "$IMAGE_NAME" ]; then
+            IMAGE_NAME='chuanhu-chatgpt'
+          fi
           if [ "${{github.event_name}}" = "release" ]; then
             RELEASE_TAG="${{github.event.release.tag_name}}"
           else
@@ -55,6 +58,7 @@ jobs:
           echo "GITOWNER=$GITOWNER" >>$GITHUB_ENV
           echo "IMAGE_NAME=$IMAGE_NAME" >>$GITHUB_ENV
           echo "RELEASE_TAG=$RELEASE_TAG" >>$GITHUB_ENV 
+
           echo "GITOWNER=$GITOWNER"
           echo "IMAGE_NAME=$IMAGE_NAME"
           echo "RELEASE_TAG=$RELEASE_TAG"
