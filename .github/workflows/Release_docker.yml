@@ -38,8 +38,8 @@ jobs:
                password : ${{ secrets.GITHUB_TOKEN }}
       - name: Get owner and image names in lowercase 
         run: 
-              GITOWNER= $(echo "${{ github.repository_owner}}" | tr '[:upper:]' '[:lower:]')
-              IMAGE_NAME=$(echo "${{ github.event.inputs.image_name" }} | tr '[:upper:]' '[:lower:]')
+              GITOWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' [:lower:])
+              IMAGE_NAME=$(echo "${{ github.event.inputs.image_name }}" | tr'[:upper:]' [:lower:])
               RELEASE_TAG=${{github.event_name == 'release' &&github.event.release.tag_name ||github.event.inputs.tag_version}}
               echo "GITOWNER=$GITOWNER" >>$GITHUB_ENV
               echo "IMAGE_NAME=$IMAGE_NAME" >>$GITHUB_ENV
