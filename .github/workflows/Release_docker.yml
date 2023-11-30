@@ -4,73 +4,57 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-          inputs:
-            image_name:
-                description: 'Enter the name for the Docker image'
-                default: 'chuanhu-chatgpt'
-                required: true
-            tag_version:
-                description: 'Enter the tag version for the Docker image'
-                default: 'latest'
-                required: false
+    inputs:
+      image_name:
+        description: 'Enter the name for the Docker image'
+        default: 'chuanhu-chatgpt'
+        required: true
+      tag_version:
+        description: 'Enter the tag version for the Docker image'
+        default: 'latest'
+        required: false
+
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ github.event.release.target_commitish }}
 
-      - name: Set release tag
-        run: |
-          echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> ${GITHUB_ENV}
-          
-      - name: Set release tag or use manual input from workflow dispatch
-        run:  |
-          if [[ "${{ github.event_name }}" == "release" ]]; then 
-            echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV;
-          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.tag_version }}" != "" ]]; then 
-            echo "RELEASE_TAG=${{ github.event.inputs.tag_version }}" >> $GITHUB_ENV;
-          else 
-            echo "::error::No tag provided for the Docker image.";
-            exit 1;
-          fi
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+      - name : Set up QEMU
+        uses : docker/setup-qemu-action@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name : Set up Docker Buildx 
+        uses : docker/setup-buildx-action@v2
 
-      # - name: Login to Docker Hub
-      #   uses: docker/login-action@v2
-      #   with:
-      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name : Login to GitHub Container Registry 
+        uses : docker/login-action@v2 
+        with :
+               registry : ghcr.io 
+               username : ${{ github.repository_owner }}
+               password : ${{ secrets.GITHUB_TOKEN }}
+      - name: Get owner and image names in lowercase 
+        run: 
+              GITOWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' [:lower:])
+              IMAGE_NAME=$(echo "${{ github.event.inputs.image_name }}" | tr'[:upper:]' [:lower:])
+              RELEASE_TAG=${{github.event_name == 'release' &&github.event.release.tag_name ||github.event.inputs.tag_version}}
+              echo "GITOWNER=$GITOWNER" >>$GITHUB_ENV
+              echo "IMAGE_NAME=$IMAGE_NAME" >>$GITHUB_ENV
+              echo "RELEASE_TAG=$RELEASE_TAG" >>$GITHUB_ENV 
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Owner names
-        run: |
-          GITOWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')
-          echo "GITOWNER=$GITOWNER" >> ${GITHUB_ENV}
-      - name: Image name
-        run: |
-          IMAGE_NAME=$(echo ${{ github.event.inputs.image_name }} | tr '[:upper:]' '[:lower:]')
-          echo "IMAGE_NAME=$IMAGE_NAME" >> ${GITHUB_ENV}
-      - name: Build and push
-        uses: docker/build-push-action@v4
+      - name : Build and push
+        uses :  docker/build-push-action@v4
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:latest
             ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_TAG }}
-            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME}}:latest
-            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME}}:${{ env.RELEASE_TAG }}
+            ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:latest
+            
+            # The following tags are for Docker Hub, uncomment if needed.
+            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_TAG }}
+            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
