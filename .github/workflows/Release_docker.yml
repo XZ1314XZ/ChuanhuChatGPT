@@ -76,7 +76,6 @@ jobs:
           #   ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           tags: |
             ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_TAG }}
-            ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha,scope=${{ github.repository }}
           cache-to: type=gha,scope=${{ github.repository }}
   
