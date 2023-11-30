@@ -24,18 +24,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.MY_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Owner names
         run: |
@@ -51,5 +51,5 @@ jobs:
           tags: |
             ghcr.io/${{ env.GITOWNER }}/chuanhuchatgpt:latest
             ghcr.io/${{ env.GITOWNER }}/chuanhuchatgpt:${{ env.RELEASE_TAG }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/chuanhuchatgpt:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/chuanhuchatgpt:${{ env.RELEASE_TAG }}
+            # ${{ secrets.DOCKERHUB_USERNAME }}/chuanhuchatgpt:latest
+            # ${{ secrets.DOCKERHUB_USERNAME }}/chuanhuchatgpt:${{ env.RELEASE_TAG }}
