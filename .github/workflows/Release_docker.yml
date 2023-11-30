@@ -4,7 +4,15 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-
+          inputs:
+            image_name:
+                description: 'Enter the name for the Docker image'
+                default: 'chuanhu-chatgpt'
+                required: true
+            tag_version:
+                description: 'Enter the tag version for the Docker image'
+                default: 'latest'
+                required: false
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -17,7 +25,17 @@ jobs:
       - name: Set release tag
         run: |
           echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> ${GITHUB_ENV}
-
+          
+      - name: Set release tag or use manual input from workflow dispatch
+        run:  |
+          if [[ "${{ github.event_name }}" == "release" ]]; then 
+            echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV;
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.tag_version }}" != "" ]]; then 
+            echo "RELEASE_TAG=${{ github.event.inputs.tag_version }}" >> $GITHUB_ENV;
+          else 
+            echo "::error::No tag provided for the Docker image.";
+            exit 1;
+          fi
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -41,7 +59,10 @@ jobs:
         run: |
           GITOWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')
           echo "GITOWNER=$GITOWNER" >> ${GITHUB_ENV}
-
+      - name: Image name
+        run: |
+          IMAGE_NAME=$(echo ${{ github.event.inputs.image_name }} | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_NAME=$IMAGE_NAME" >> ${GITHUB_ENV}
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -49,7 +70,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/${{ env.GITOWNER }}/chuanhuchatgpt:latest
-            ghcr.io/${{ env.GITOWNER }}/chuanhuchatgpt:${{ env.RELEASE_TAG }}
-            # ${{ secrets.DOCKERHUB_USERNAME }}/chuanhuchatgpt:latest
-            # ${{ secrets.DOCKERHUB_USERNAME }}/chuanhuchatgpt:${{ env.RELEASE_TAG }}
+            ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/${{ env.GITOWNER }}/${{ env.IMAGE_NAME }}:${{ env.RELEASE_TAG }}
+            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME}}:latest
+            # ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME}}:${{ env.RELEASE_TAG }}
