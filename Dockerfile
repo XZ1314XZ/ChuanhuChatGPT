@@ -15,7 +15,8 @@ ENV PATH=/root/.local/bin:$PATH
 COPY . /app
 WORKDIR /app
 ENV dockerrun=yes
+RUN touch /var/log/application.log && chmod 666 /var/log/application.log
 # CMD ["python3", "-u", "ChuanhuChatbot.py","2>&1", "|", "tee", "/var/log/application.log"]
 CMD sh -c "python3 -u ChuanhuChatbot.py | tee /var/log/application.log"
-RUN touch /var/log/application.log && chmod 666 /var/log/application.log
+
 
